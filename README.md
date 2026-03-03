@@ -1,8 +1,13 @@
 # 8k4 Protocol Documentation
 
-8k4 provides trust scoring + metadata infrastructure for ERC-8004 agents across Ethereum, Base, and BSC.
+Canonical documentation source for 8k4.
 
-Auth model is now:
+Production docs strategy:
+- This repo is the **single source of truth** for prose docs.
+- Live API schema source is `https://api.8k4protocol.com/openapi.json`.
+- `https://8k4protocol.com/docs/` should be a minimal shell that points here.
+
+Auth model:
 - open/public endpoints,
 - x402 for paid calls,
 - optional self-serve API keys (`POST /keys/generate`).
@@ -16,9 +21,7 @@ Auth model is now:
 
 ## Key Links
 
-| Resource | URL |
-|---|---|
-| API Base | `https://api.8k4protocol.com` |
-| Website | https://8k4protocol.com |
-| Docs Site | https://8k4protocol.com/docs/ |
-| Health | https://api.8k4protocol.com/health |
+- API Base: `https://api.8k4protocol.com`
+- OpenAPI: `https://api.8k4protocol.com/openapi.json`
+- Website: `https://8k4protocol.com`
+- Website docs shell: `https://8k4protocol.com/docs/`
