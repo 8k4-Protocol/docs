@@ -24,9 +24,13 @@ Use an x402-capable client to pay on Base and retry automatically.
 ## 3) Optional self-serve key flow
 
 ```bash
+TS=$(date +%s)
+WALLET="0xYOUR_WALLET"
+MSG="Generate 8k4 API key for wallet ${WALLET} at timestamp ${TS}"
+
 curl -X POST "https://api.8k4protocol.com/keys/generate" \
   -H "Content-Type: application/json" \
-  -d '{"wallet":"0xYOUR_WALLET","message":"8k4 key request","signature":"0x..."}'
+  -d "{\"wallet\":\"${WALLET}\",\"message\":\"${MSG}\",\"signature\":\"0x...\"}"
 ```
 
 Then call paid endpoints with `X-API-Key`:
@@ -46,5 +50,7 @@ Without key, `/keys/info` returns `401`.
 
 ## Limits
 
-- Unauthenticated IP free tier: `50/day` for score + explain endpoints
+- Unauthenticated IP free tier: `50/day` for:
+  - `GET /agents/{agent_id}/score`
+  - `GET /agents/{agent_id}/score/explain`
 - Free self-serve API key: `1,000/day`
