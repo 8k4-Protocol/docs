@@ -1,28 +1,24 @@
 # 8k4 Protocol Documentation
 
-8k4 is trust scoring infrastructure for ERC-8004 autonomous agents. It indexes 58,000+ agents across Ethereum, Base, and BSC, computes an IGGY-Score (0–100) per agent from on-chain signals, and exposes scores via a REST API with x402 micropayment support.
+8k4 provides trust scoring + metadata infrastructure for ERC-8004 agents across Ethereum, Base, and BSC.
+
+Auth model is now:
+- open/public endpoints,
+- x402 for paid calls,
+- optional self-serve API keys (`POST /keys/generate`).
 
 ## Contents
 
-- **[Quickstart](quickstart.md)** — Get a trust score in under 2 minutes
-- **[API Reference](api-reference.md)** — Endpoints, auth, pricing, response formats
-- **[x402 Payments](x402.md)** — How x402 micropayments work with 8k4
-- **[Agent Registration](agent-registration.md)** — Register your agent and host metadata
+- **[Quickstart](quickstart.md)**
+- **[API Reference](api-reference.md)**
+- **[x402 Payments](x402.md)**
+- **[Agent Registration](agent-registration.md)**
 
 ## Key Links
 
 | Resource | URL |
-|----------|-----|
+|---|---|
 | API Base | `https://api.8k4protocol.com` |
-| Website | [8k4protocol.com](https://8k4protocol.com) |
-| Docs Site | [8k4protocol.com/docs](https://8k4protocol.com/docs/) |
-| Health Check | [api.8k4protocol.com/health](https://api.8k4protocol.com/health) |
-| Contact | info@8k4protocol.com |
-
-## Supported Chains
-
-| Chain | Chain ID | Identity Registry |
-|-------|----------|-------------------|
-| Ethereum | 1 | `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` |
-| Base | 8453 | `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` |
-| BSC | 56 | `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` |
+| Website | https://8k4protocol.com |
+| Docs Site | https://8k4protocol.com/docs/ |
+| Health | https://api.8k4protocol.com/health |
