@@ -33,7 +33,6 @@ Base URL: `https://api.8k4protocol.com`
 
 - `GET /agents/{agent_id}/score?chain=base|eth|bsc` — compact score payload
 - `GET /agents/{agent_id}/score/explain?chain=base|eth|bsc` — explainable output
-- `GET /agents/{agent_id}/score/debug?chain=base|eth|bsc` — internal key only
 
 ### Other reads
 
@@ -42,7 +41,8 @@ Base URL: `https://api.8k4protocol.com`
 - `GET /wallet/{wallet}/score?chain=...&agent_id=...`
 - `GET /identity/{global_id}`
 - `GET /stats`
-- `GET /metrics`
+
+> Note: internal/admin routes are intentionally omitted from public docs and schema.
 
 ### Metadata
 
