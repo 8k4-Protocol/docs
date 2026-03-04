@@ -18,6 +18,7 @@ Auth model:
 - **[API Reference](api-reference.md)**
 - **[x402 Payments](x402.md)**
 - **[Agent Registration](agent-registration.md)**
+- **[Score Disclaimer](disclaimer.md)**
 
 ## Key Links
 

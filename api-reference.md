@@ -34,6 +34,8 @@ Base URL: `https://api.8k4protocol.com`
 - `GET /agents/{agent_id}/score?chain=base|eth|bsc` — compact score payload
 - `GET /agents/{agent_id}/score/explain?chain=base|eth|bsc` — explainable output
 
+> All score responses include a `disclaimer` field. See [Score Disclaimer](disclaimer.md).
+
 ### Other reads
 
 - `GET /agents/{agent_id}/validations?chain=...&limit=...`
