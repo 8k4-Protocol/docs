@@ -50,7 +50,9 @@ Without key, `/keys/info` returns `401`.
 
 ## Limits
 
-- Unauthenticated IP free tier: `50/day` for:
+- Unauthenticated IP free tier: `100/day` for:
   - `GET /agents/{agent_id}/score`
   - `GET /agents/{agent_id}/score/explain`
+  - `GET /agents/search`
+  - `GET /agents/{agent_id}/card`
 - Free self-serve API key: `1,000/day`
