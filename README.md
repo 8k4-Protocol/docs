@@ -18,6 +18,7 @@ Auth model:
 - **[API Reference](api-reference.md)**
 - **[x402 Payments](x402.md)**
 - **[Agent Registration](agent-registration.md)**
+- **[Hosted Metadata + setURI Flow](SETURI_FLOW.md)**
 - **[Score Disclaimer](disclaimer.md)**
 
 ## Key Links
