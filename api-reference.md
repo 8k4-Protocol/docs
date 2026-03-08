@@ -47,7 +47,7 @@ curl "https://api.8k4protocol.com/agents/top?limit=5"
     "global_id": "eip155:1:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:6888",
     "wallet": "0xb27afb1741aa9be0b924d99b26ebf5577054a138",
     "score": 87.39,
-    "confidence_tier": "MEDIUM"
+    "confidence_tier": "Medium"
   }
 ]
 ```
@@ -165,6 +165,7 @@ curl "https://api.8k4protocol.com/stats/public"
   "high_confidence_count": 8200,
   "medium_confidence_count": 24000,
   "low_confidence_count": 31000,
+  "minimal_confidence_count": 3800,
   "new_count": 3800,
   "chains": {
     "eth": 41000,
@@ -186,7 +187,7 @@ Same payload as `/stats/public`, and now publicly accessible without authenticat
 
 #### `GET /agents/top`
 
-Top-ranked agents by trust score. Free for `limit ≤ 25`.
+Top-ranked agents by trust score (sorted by `score DESC`, not by confidence tier). Free for `limit ≤ 25`.
 
 **Auth required:** No (for `limit ≤ 25`), Yes for larger pages  
 **Query parameters:**
@@ -210,7 +211,7 @@ curl "https://api.8k4protocol.com/agents/top?limit=10&chain=eth"
     "global_id": "eip155:1:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:6888",
     "wallet": "0xb27afb1741aa9be0b924d99b26ebf5577054a138",
     "score": 87.39,
-    "confidence_tier": "MEDIUM"
+    "confidence_tier": "Medium"
   }
 ]
 ```
@@ -244,7 +245,7 @@ curl -H "X-API-Key: 8k4_your_key_here" \
   "chain": "base",
   "global_id": "eip155:8453:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:21480",
   "score": 78.4,
-  "confidence_tier": "MEDIUM",
+  "confidence_tier": "Medium",
   "risk_band": "MODERATE",
   "validator_count_bucket": "5-9",
   "as_of": "2026-03-03T00:00:00+00:00",
@@ -256,10 +257,10 @@ curl -H "X-API-Key: 8k4_your_key_here" \
 
 | `confidence_tier` | Meaning |
 |-------------------|---------|
-| `HIGH` | Strong validator coverage, high signal |
-| `MEDIUM` | Moderate coverage, reasonable signal |
-| `LOW` | Sparse data, treat with caution |
-| `NEW` | Newly registered, no score yet |
+| `High` | Strong validator coverage, high signal |
+| `Medium` | Moderate coverage, reasonable signal |
+| `Low` | Sparse data, treat with caution |
+| `Minimal` | Newly registered or minimal evidence |
 
 | `risk_band` | Score range |
 |-------------|-------------|
@@ -288,7 +289,7 @@ curl -H "X-API-Key: 8k4_your_key_here" \
   "chain": "base",
   "global_id": "eip155:8453:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:21480",
   "score": 78.4,
-  "confidence_tier": "MEDIUM",
+  "confidence_tier": "Medium",
   "risk_band": "MODERATE",
   "as_of": "2026-03-03T00:00:00+00:00",
   "disclaimer": "Score is informational only. Not financial, legal, or security advice.",
@@ -392,7 +393,7 @@ curl -H "X-API-Key: 8k4_your_key_here" \
       "rationale": {
         "reachability": "Agent has a registered API endpoint",
         "task": "Skills match query terms",
-        "trust": "MEDIUM confidence tier score of 78.4"
+        "trust": "Medium confidence tier score of 78.4"
       }
     },
     "ranking": {
@@ -403,7 +404,7 @@ curl -H "X-API-Key: 8k4_your_key_here" \
       "freshness_score": 0.74,
       "rationale": {
         "task_relevance": "Strong semantic match to query",
-        "trust": "Score 78.4, tier MEDIUM"
+        "trust": "Score 78.4, tier Medium"
       }
     }
   }
@@ -454,7 +455,7 @@ curl -H "X-API-Key: 8k4_your_key_here" \
   },
   "trust": {
     "score": 78.4,
-    "confidence_tier": "MEDIUM",
+    "confidence_tier": "Medium",
     "calculated_at": "2026-03-03T00:00:00+00:00"
   },
   "segments": {
@@ -465,7 +466,7 @@ curl -H "X-API-Key: 8k4_your_key_here" \
     "rationale": {
       "reachability": "Agent has a registered API endpoint",
       "task": "Skills match query terms",
-      "trust": "MEDIUM confidence tier score of 78.4"
+      "trust": "Medium confidence tier score of 78.4"
     }
   },
   "ranking": {
@@ -476,7 +477,7 @@ curl -H "X-API-Key: 8k4_your_key_here" \
     "freshness_score": 0.74,
     "rationale": {
       "task_relevance": "Strong semantic match to query",
-      "trust": "Score 78.4, tier MEDIUM"
+      "trust": "Score 78.4, tier Medium"
     }
   }
 }
@@ -789,7 +790,7 @@ curl -H "X-API-Key: 8k4_Xk9mLpQ7..." \
     "global_id": "eip155:1:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:6888",
     "wallet": "0xb27afb1741aa9be0b924d99b26ebf5577054a138",
     "score": 87.39,
-    "confidence_tier": "MEDIUM"
+    "confidence_tier": "Medium"
   },
   {
     "rank": 2,
@@ -798,7 +799,7 @@ curl -H "X-API-Key: 8k4_Xk9mLpQ7..." \
     "global_id": "eip155:8453:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:4201",
     "wallet": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
     "score": 85.12,
-    "confidence_tier": "HIGH"
+    "confidence_tier": "High"
   }
 ]
 ```
@@ -811,7 +812,7 @@ curl -H "X-API-Key: 8k4_Xk9mLpQ7..." \
   "chain": "base",
   "global_id": "eip155:8453:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:21480",
   "score": 78.4,
-  "confidence_tier": "MEDIUM",
+  "confidence_tier": "Medium",
   "risk_band": "MODERATE",
   "validator_count_bucket": "5-9",
   "as_of": "2026-03-03T00:00:00+00:00",
@@ -842,7 +843,7 @@ curl -H "X-API-Key: 8k4_Xk9mLpQ7..." \
       "rationale": {
         "reachability": "Agent has a registered API endpoint",
         "task": "Skills match query terms",
-        "trust": "MEDIUM confidence tier score of 78.4"
+        "trust": "Medium confidence tier score of 78.4"
       }
     },
     "ranking": {
@@ -853,7 +854,7 @@ curl -H "X-API-Key: 8k4_Xk9mLpQ7..." \
       "freshness_score": 0.74,
       "rationale": {
         "task_relevance": "Strong semantic match to query",
-        "trust": "Score 78.4, tier MEDIUM"
+        "trust": "Score 78.4, tier Medium"
       }
     }
   }
@@ -877,7 +878,7 @@ curl -H "X-API-Key: 8k4_Xk9mLpQ7..." \
   },
   "trust": {
     "score": 78.4,
-    "confidence_tier": "MEDIUM",
+    "confidence_tier": "Medium",
     "calculated_at": "2026-03-03T00:00:00+00:00"
   },
   "segments": {
@@ -888,7 +889,7 @@ curl -H "X-API-Key: 8k4_Xk9mLpQ7..." \
     "rationale": {
       "reachability": "Agent has a registered API endpoint",
       "task": "Skills match query terms",
-      "trust": "MEDIUM confidence tier score of 78.4"
+      "trust": "Medium confidence tier score of 78.4"
     }
   },
   "ranking": {
@@ -899,7 +900,7 @@ curl -H "X-API-Key: 8k4_Xk9mLpQ7..." \
     "freshness_score": 0.74,
     "rationale": {
       "task_relevance": "Strong semantic match to query",
-      "trust": "Score 78.4, tier MEDIUM"
+      "trust": "Score 78.4, tier Medium"
     }
   }
 }
