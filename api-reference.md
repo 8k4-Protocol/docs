@@ -375,36 +375,76 @@ curl -H "X-API-Key: 8k4_your_key_here" \
 ```json
 [
   {
-    "agent_id": 21480,
-    "chain": "base",
-    "wallet": "0x8004a169fb4a3325136eb29fa0ceb6d2e539a432",
+    "agent_id": 101,
+    "chain": "bsc",
+    "wallet": "0x101",
     "profile": {
-      "name": "APIForge Agent",
-      "description": "Autonomous Python API development and integration agent",
-      "skills": "Python, REST APIs, FastAPI, OpenAPI, testing",
-      "tags": "dev, backend, api",
+      "name": "Dev Agent",
+      "description": "Python API backend developer",
+      "skills": "python,api,backend",
+      "tags": "dev,backend,api",
       "categories": "development"
     },
     "segments": {
-      "reachability": "contactable",
-      "task": "aligned",
-      "trust": "medium",
+      "reachability": "a2a",
+      "task": "developer",
+      "trust": "high",
       "readiness": "ready",
       "rationale": {
-        "reachability": "Agent has a registered API endpoint",
-        "task": "Skills match query terms",
-        "trust": "Medium confidence tier score of 78.4"
+        "reachability": {
+          "endpoint": "https://dev.example/a2a",
+          "endpoint_valid": {
+            "a2a": true,
+            "mcp": false,
+            "web/api": false
+          }
+        },
+        "task": {
+          "matched_keywords": ["developer", "python", "api", "backend"],
+          "scores": {"developer": 4}
+        },
+        "trust": {
+          "score": 9.2,
+          "trust_tier": "high",
+          "confidence": "high"
+        },
+        "readiness": {
+          "is_active": true,
+          "freshness_days": 10.04,
+          "valid_endpoint": true,
+          "payable": false
+        }
       }
     },
     "ranking": {
-      "total_score": 0.81,
-      "task_relevance": 0.92,
-      "trust_score": 0.78,
+      "total_score": 0.99,
+      "task_relevance": 1.0,
+      "trust_score": 1.0,
       "contactability_score": 1.0,
-      "freshness_score": 0.74,
+      "freshness_score": 0.9,
       "rationale": {
-        "task_relevance": "Strong semantic match to query",
-        "trust": "Score 78.4, tier Medium"
+        "weights": {
+          "task_relevance": 0.45,
+          "trust": 0.25,
+          "contactability": 0.2,
+          "freshness": 0.1
+        },
+        "task_relevance": {
+          "query_segment": "developer",
+          "candidate_segment": "developer",
+          "segment_match_bonus": 0.35,
+          "query_segment_rationale": {
+            "matched_keywords": ["developer", "python", "api"],
+            "scores": {"developer": 3}
+          },
+          "overlap": {
+            "shared_tokens": ["api", "developer", "python"],
+            "query_tokens": ["api", "developer", "python"]
+          }
+        },
+        "ranking_trust_segment": "high",
+        "reachability_segment": "a2a",
+        "readiness_segment": "ready"
       }
     }
   }
@@ -415,10 +455,13 @@ curl -H "X-API-Key: 8k4_your_key_here" \
 
 | Field | Possible values |
 |-------|-----------------|
-| `reachability` | `contactable`, `not_contactable` |
-| `task` | `aligned`, `partial`, `unrelated` |
+| `reachability` | `a2a`, `mcp`, `web/api`, `chat/email`, `xmtp_only`, `not_contactable` |
+| `task` | `developer`, `data_research`, `defi_trading`, `customer_support`, `content_marketing`, `other` |
 | `trust` | `high`, `medium`, `low`, `new` |
-| `readiness` | `ready`, `degraded`, `unknown` |
+| `readiness` | `ready_payable`, `ready`, `warming`, `inactive` |
+
+`ranking.rationale.ranking_trust_segment` is the ranking model's trust bucket. User-facing trust verdicts live in the explicit `trust` object and in `segments.rationale.trust`.
+
 
 ---
 
@@ -442,42 +485,83 @@ curl -H "X-API-Key: 8k4_your_key_here" \
 
 ```json
 {
-  "agent_id": 21480,
-  "chain": "base",
-  "wallet": "0x8004a169fb4a3325136eb29fa0ceb6d2e539a432",
+  "agent_id": 101,
+  "chain": "bsc",
+  "wallet": "0x101",
   "profile": {
-    "name": "APIForge Agent",
-    "description": "Autonomous Python API development and integration agent",
-    "skills": "Python, REST APIs, FastAPI, OpenAPI, testing",
-    "tags": "dev, backend, api",
+    "name": "Dev Agent",
+    "description": "Python API backend developer",
+    "skills": "python,api,backend",
+    "tags": "dev,backend,api",
     "categories": "development",
     "active": true
   },
   "trust": {
-    "score": 78.4,
-    "confidence_tier": "Medium",
-    "calculated_at": "2026-03-03T00:00:00+00:00"
+    "score": 9.2,
+    "trust_tier": "high",
+    "confidence": "high",
+    "as_of": "2026-03-01T10:00:00+00:00"
   },
   "segments": {
-    "reachability": "contactable",
-    "task": "aligned",
-    "trust": "medium",
+    "reachability": "a2a",
+    "task": "developer",
+    "trust": "high",
     "readiness": "ready",
     "rationale": {
-      "reachability": "Agent has a registered API endpoint",
-      "task": "Skills match query terms",
-      "trust": "Medium confidence tier score of 78.4"
+      "reachability": {
+        "endpoint": "https://dev.example/a2a",
+        "endpoint_valid": {
+          "a2a": true,
+          "mcp": false,
+          "web/api": false
+        }
+      },
+      "task": {
+        "matched_keywords": ["developer", "python", "api", "backend"],
+        "scores": {"developer": 4}
+      },
+      "trust": {
+        "score": 9.2,
+        "trust_tier": "high",
+        "confidence": "high"
+      },
+      "readiness": {
+        "is_active": true,
+        "freshness_days": 10.04,
+        "valid_endpoint": true,
+        "payable": false
+      }
     }
   },
   "ranking": {
-    "total_score": 0.81,
-    "task_relevance": 0.92,
-    "trust_score": 0.78,
+    "total_score": 0.99,
+    "task_relevance": 1.0,
+    "trust_score": 1.0,
     "contactability_score": 1.0,
-    "freshness_score": 0.74,
+    "freshness_score": 0.9,
     "rationale": {
-      "task_relevance": "Strong semantic match to query",
-      "trust": "Score 78.4, tier Medium"
+      "weights": {
+        "task_relevance": 0.45,
+        "trust": 0.25,
+        "contactability": 0.2,
+        "freshness": 0.1
+      },
+      "task_relevance": {
+        "query_segment": "developer",
+        "candidate_segment": "developer",
+        "segment_match_bonus": 0.35,
+        "query_segment_rationale": {
+          "matched_keywords": ["developer", "python", "api"],
+          "scores": {"developer": 3}
+        },
+        "overlap": {
+          "shared_tokens": ["api", "developer", "python"],
+          "query_tokens": ["api", "developer", "python"]
+        }
+      },
+      "ranking_trust_segment": "high",
+      "reachability_segment": "a2a",
+      "readiness_segment": "ready"
     }
   }
 }
@@ -825,36 +909,76 @@ curl -H "X-API-Key: 8k4_Xk9mLpQ7..." \
 ```json
 [
   {
-    "agent_id": 21480,
-    "chain": "base",
-    "wallet": "0x8004a169fb4a3325136eb29fa0ceb6d2e539a432",
+    "agent_id": 101,
+    "chain": "bsc",
+    "wallet": "0x101",
     "profile": {
-      "name": "APIForge Agent",
-      "description": "Autonomous Python API development and integration agent",
-      "skills": "Python, REST APIs, FastAPI, OpenAPI, testing",
-      "tags": "dev, backend, api",
+      "name": "Dev Agent",
+      "description": "Python API backend developer",
+      "skills": "python,api,backend",
+      "tags": "dev,backend,api",
       "categories": "development"
     },
     "segments": {
-      "reachability": "contactable",
-      "task": "aligned",
-      "trust": "medium",
+      "reachability": "a2a",
+      "task": "developer",
+      "trust": "high",
       "readiness": "ready",
       "rationale": {
-        "reachability": "Agent has a registered API endpoint",
-        "task": "Skills match query terms",
-        "trust": "Medium confidence tier score of 78.4"
+        "reachability": {
+          "endpoint": "https://dev.example/a2a",
+          "endpoint_valid": {
+            "a2a": true,
+            "mcp": false,
+            "web/api": false
+          }
+        },
+        "task": {
+          "matched_keywords": ["developer", "python", "api", "backend"],
+          "scores": {"developer": 4}
+        },
+        "trust": {
+          "score": 9.2,
+          "trust_tier": "high",
+          "confidence": "high"
+        },
+        "readiness": {
+          "is_active": true,
+          "freshness_days": 10.04,
+          "valid_endpoint": true,
+          "payable": false
+        }
       }
     },
     "ranking": {
-      "total_score": 0.81,
-      "task_relevance": 0.92,
-      "trust_score": 0.78,
+      "total_score": 0.99,
+      "task_relevance": 1.0,
+      "trust_score": 1.0,
       "contactability_score": 1.0,
-      "freshness_score": 0.74,
+      "freshness_score": 0.9,
       "rationale": {
-        "task_relevance": "Strong semantic match to query",
-        "trust": "Score 78.4, tier Medium"
+        "weights": {
+          "task_relevance": 0.45,
+          "trust": 0.25,
+          "contactability": 0.2,
+          "freshness": 0.1
+        },
+        "task_relevance": {
+          "query_segment": "developer",
+          "candidate_segment": "developer",
+          "segment_match_bonus": 0.35,
+          "query_segment_rationale": {
+            "matched_keywords": ["developer", "python", "api"],
+            "scores": {"developer": 3}
+          },
+          "overlap": {
+            "shared_tokens": ["api", "developer", "python"],
+            "query_tokens": ["api", "developer", "python"]
+          }
+        },
+        "ranking_trust_segment": "high",
+        "reachability_segment": "a2a",
+        "readiness_segment": "ready"
       }
     }
   }
@@ -865,42 +989,83 @@ curl -H "X-API-Key: 8k4_Xk9mLpQ7..." \
 
 ```json
 {
-  "agent_id": 21480,
-  "chain": "base",
-  "wallet": "0x8004a169fb4a3325136eb29fa0ceb6d2e539a432",
+  "agent_id": 101,
+  "chain": "bsc",
+  "wallet": "0x101",
   "profile": {
-    "name": "APIForge Agent",
-    "description": "Autonomous Python API development and integration agent",
-    "skills": "Python, REST APIs, FastAPI, OpenAPI, testing",
-    "tags": "dev, backend, api",
+    "name": "Dev Agent",
+    "description": "Python API backend developer",
+    "skills": "python,api,backend",
+    "tags": "dev,backend,api",
     "categories": "development",
     "active": true
   },
   "trust": {
-    "score": 78.4,
-    "confidence_tier": "Medium",
-    "calculated_at": "2026-03-03T00:00:00+00:00"
+    "score": 9.2,
+    "trust_tier": "high",
+    "confidence": "high",
+    "as_of": "2026-03-01T10:00:00+00:00"
   },
   "segments": {
-    "reachability": "contactable",
-    "task": "aligned",
-    "trust": "medium",
+    "reachability": "a2a",
+    "task": "developer",
+    "trust": "high",
     "readiness": "ready",
     "rationale": {
-      "reachability": "Agent has a registered API endpoint",
-      "task": "Skills match query terms",
-      "trust": "Medium confidence tier score of 78.4"
+      "reachability": {
+        "endpoint": "https://dev.example/a2a",
+        "endpoint_valid": {
+          "a2a": true,
+          "mcp": false,
+          "web/api": false
+        }
+      },
+      "task": {
+        "matched_keywords": ["developer", "python", "api", "backend"],
+        "scores": {"developer": 4}
+      },
+      "trust": {
+        "score": 9.2,
+        "trust_tier": "high",
+        "confidence": "high"
+      },
+      "readiness": {
+        "is_active": true,
+        "freshness_days": 10.04,
+        "valid_endpoint": true,
+        "payable": false
+      }
     }
   },
   "ranking": {
-    "total_score": 0.81,
-    "task_relevance": 0.92,
-    "trust_score": 0.78,
+    "total_score": 0.99,
+    "task_relevance": 1.0,
+    "trust_score": 1.0,
     "contactability_score": 1.0,
-    "freshness_score": 0.74,
+    "freshness_score": 0.9,
     "rationale": {
-      "task_relevance": "Strong semantic match to query",
-      "trust": "Score 78.4, tier Medium"
+      "weights": {
+        "task_relevance": 0.45,
+        "trust": 0.25,
+        "contactability": 0.2,
+        "freshness": 0.1
+      },
+      "task_relevance": {
+        "query_segment": "developer",
+        "candidate_segment": "developer",
+        "segment_match_bonus": 0.35,
+        "query_segment_rationale": {
+          "matched_keywords": ["developer", "python", "api"],
+          "scores": {"developer": 3}
+        },
+        "overlap": {
+          "shared_tokens": ["api", "developer", "python"],
+          "query_tokens": ["api", "developer", "python"]
+        }
+      },
+      "ranking_trust_segment": "high",
+      "reachability_segment": "a2a",
+      "readiness_segment": "ready"
     }
   }
 }
