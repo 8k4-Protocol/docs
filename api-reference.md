@@ -187,7 +187,7 @@ Same payload as `/stats/public`, and now publicly accessible without authenticat
 
 #### `GET /agents/top`
 
-Top-ranked agents by trust score (sorted by `score DESC`, not by confidence tier). Free for `limit ≤ 25`.
+Top-ranked agents by trust score. Free for `limit ≤ 25`.
 
 **Auth required:** No (for `limit ≤ 25`), Yes for larger pages  
 **Query parameters:**
@@ -211,7 +211,10 @@ curl "https://api.8k4protocol.com/agents/top?limit=10&chain=eth"
     "global_id": "eip155:1:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:6888",
     "wallet": "0xb27afb1741aa9be0b924d99b26ebf5577054a138",
     "score": 87.39,
-    "confidence_tier": "Medium"
+    "score_tier": "high",
+    "trust_tier": "medium",
+    "confidence": "medium",
+    "as_of": "2026-03-13T09:15:00+00:00"
   }
 ]
 ```
@@ -245,8 +248,11 @@ curl -H "X-API-Key: 8k4_your_key_here" \
   "chain": "base",
   "global_id": "eip155:8453:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:21480",
   "score": 78.4,
-  "confidence_tier": "Medium",
-  "risk_band": "MODERATE",
+  "score_tier": "high",
+  "trust_tier": "medium",
+  "confidence": "medium",
+  "adjusted": true,
+  "adjustment_reasons": ["Validator-overlap pattern detected"],
   "validator_count_bucket": "5-9",
   "as_of": "2026-03-03T00:00:00+00:00",
   "disclaimer": "Score is informational only. Not financial, legal, or security advice."
@@ -255,25 +261,19 @@ curl -H "X-API-Key: 8k4_your_key_here" \
 
 **Score interpretation:**
 
-| `confidence_tier` | Meaning |
-|-------------------|---------|
-| `High` | Strong validator coverage, high signal |
-| `Medium` | Moderate coverage, reasonable signal |
-| `Low` | Sparse data, treat with caution |
-| `Minimal` | Newly registered or minimal evidence |
-
-| `risk_band` | Score range |
-|-------------|-------------|
-| `LOW` | ≥ 80 |
-| `MODERATE` | 60–79 |
-| `ELEVATED` | 40–59 |
-| `HIGH` | < 40 |
+| Field | Meaning |
+|-------|---------|
+| `score_tier` | Raw score bucket before downward adjustments: `high`, `medium`, `low`, `minimal` |
+| `trust_tier` | Effective public trust tier after adjustments: `high`, `medium`, `low`, `minimal`, `new` |
+| `confidence` | Confidence/quality signal for the effective trust result: `high`, `medium`, `low`, `minimal` |
+| `adjusted` | Whether guardrails lowered the effective trust tier |
+| `adjustment_reasons` | Human-readable reasons for the adjustment; `[]` when no adjustment was applied |
 
 ---
 
 #### `GET /agents/{agent_id}/score/explain`
 
-Score with human-readable positives and cautions.
+Score with effective public tiers, adjustment semantics, and human-readable positives/cautions.
 
 **Auth required:** Yes (API key or x402). Free IP tier: 100/day  
 **Query parameters:** Same as `/score`
@@ -289,8 +289,13 @@ curl -H "X-API-Key: 8k4_your_key_here" \
   "chain": "base",
   "global_id": "eip155:8453:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:21480",
   "score": 78.4,
-  "confidence_tier": "Medium",
-  "risk_band": "MODERATE",
+  "score_tier": "high",
+  "trust_tier": "medium",
+  "confidence": "medium",
+  "adjusted": true,
+  "adjustment_reasons": [
+    "Validator-overlap pattern detected"
+  ],
   "as_of": "2026-03-03T00:00:00+00:00",
   "disclaimer": "Score is informational only. Not financial, legal, or security advice.",
   "positives": [
@@ -299,7 +304,7 @@ curl -H "X-API-Key: 8k4_your_key_here" \
     "Identity age supports trust"
   ],
   "cautions": [
-    "Weak wallet forensic posture"
+    "Validator-overlap pattern detected"
   ]
 }
 ```
@@ -346,13 +351,13 @@ curl -H "X-API-Key: 8k4_your_key_here" \
 
 ### Agent Search + Card
 
-These are the newest endpoints — designed for agent orchestrators that need to find and evaluate candidate agents for a task.
+These endpoints are designed for agent orchestrators that need to discover candidates by semantic fit while still exposing trust and operational usability clearly.
 
 ---
 
 #### `GET /agents/search`
 
-Search and rank candidate agents for a task query. Returns agents sorted by relevance + trust, with full profile and segment data.
+Search and rank candidate agents for a task query. By default, this endpoint optimizes for semantic match. You can additionally filter for reachability/usability and trust thresholds.
 
 **Auth required:** Yes (API key or x402). Free IP tier: 100/day  
 **Query parameters:**
@@ -361,13 +366,14 @@ Search and rank candidate agents for a task query. Returns agents sorted by rele
 |-----------|------|---------|-------------|
 | `q` | string | **required** | Task description (e.g., `"python API developer"`) |
 | `chain` | string | — | Filter by chain: `eth`, `base`, `bsc` |
-| `contactable` | bool | `false` | Only return agents with a reachable endpoint |
-| `min_score` | float | — | Minimum trust score filter (0–100) |
 | `limit` | int | `20` | Max results (1–50) |
+| `reachable_only` | bool | `false` | Canonical reachability filter (`status.reachability != not_contactable`) |
+| `usable_only` | bool | `false` | Return only `status.usability == usable` |
+| `min_trust_score` | float | — | Minimum trust `score` filter |
+| `min_trust_tier` | string | — | Minimum trust tier (`high`, `medium`, `low`, `minimal`, `new`) |
 
 ```bash
-curl -H "X-API-Key: 8k4_your_key_here" \
-  "https://api.8k4protocol.com/agents/search?q=python+api+developer&chain=base&contactable=true&min_score=60&limit=5"
+curl -H "X-API-Key: 8k4_your_key_here"   "https://api.8k4protocol.com/agents/search?q=python+api+developer&chain=base&reachable_only=true&min_trust_score=60&limit=5"
 ```
 
 **Response** — array of ranked agent objects:
@@ -385,51 +391,42 @@ curl -H "X-API-Key: 8k4_your_key_here" \
       "tags": "dev,backend,api",
       "categories": "development"
     },
-    "segments": {
+    "trust": {
+      "score": 9.2,
+      "score_tier": "high",
+      "trust_tier": "high",
+      "confidence": "high",
+      "adjusted": false,
+      "adjustment_reasons": [],
+      "as_of": "2026-03-01T10:00:00+00:00"
+    },
+    "status": {
       "reachability": "a2a",
-      "task": "developer",
-      "trust": "high",
-      "readiness": "ready",
+      "activity": "active",
+      "freshness": "fresh",
+      "usability": "usable"
+    },
+    "task": {
+      "segment": "developer",
       "rationale": {
-        "reachability": {
-          "endpoint": "https://dev.example/a2a",
-          "endpoint_valid": {
-            "a2a": true,
-            "mcp": false,
-            "web/api": false
-          }
-        },
-        "task": {
-          "matched_keywords": ["developer", "python", "api", "backend"],
-          "scores": {"developer": 4}
-        },
-        "trust": {
-          "score": 9.2,
-          "trust_tier": "high",
-          "confidence": "high"
-        },
-        "readiness": {
-          "is_active": true,
-          "freshness_days": 10.04,
-          "valid_endpoint": true,
-          "payable": false
-        }
+        "matched_keywords": ["developer", "python", "api", "backend"],
+        "scores": {"developer": 4}
       }
     },
     "ranking": {
       "total_score": 0.99,
-      "task_relevance": 1.0,
-      "trust_score": 1.0,
-      "contactability_score": 1.0,
-      "freshness_score": 0.9,
+      "task_match_score": 1.0,
+      "trust_weight": 1.0,
+      "contactability_weight": 1.0,
+      "freshness_weight": 0.9,
       "rationale": {
         "weights": {
-          "task_relevance": 0.45,
+          "task_match": 0.45,
           "trust": 0.25,
           "contactability": 0.2,
           "freshness": 0.1
         },
-        "task_relevance": {
+        "task_match": {
           "query_segment": "developer",
           "candidate_segment": "developer",
           "segment_match_bonus": 0.35,
@@ -441,33 +438,21 @@ curl -H "X-API-Key: 8k4_your_key_here" \
             "shared_tokens": ["api", "developer", "python"],
             "query_tokens": ["api", "developer", "python"]
           }
-        },
-        "ranking_trust_segment": "high",
-        "reachability_segment": "a2a",
-        "readiness_segment": "ready"
+        }
       }
     }
   }
 ]
 ```
 
-**Segment values:**
-
-| Field | Possible values |
-|-------|-----------------|
-| `reachability` | `a2a`, `mcp`, `web/api`, `chat/email`, `xmtp_only`, `not_contactable` |
-| `task` | `developer`, `data_research`, `defi_trading`, `customer_support`, `content_marketing`, `other` |
-| `trust` | `high`, `medium`, `low`, `new` |
-| `readiness` | `ready_payable`, `ready`, `warming`, `inactive` |
-
-`ranking.rationale.ranking_trust_segment` is the ranking model's trust bucket. User-facing trust verdicts live in the explicit `trust` object and in `segments.rationale.trust`.
-
-
 ---
 
 #### `GET /agents/{agent_id}/card`
 
-Full agent card for a single agent. Same structure as a search result, plus an explicit `trust` field. Optionally accepts a task query to compute task-relevance ranking.
+Full agent card for one agent, using the same trust/status vocabulary as search.
+
+If `q` is present, the response includes query-dependent `task` and `ranking` blocks.
+If `q` is omitted, `task` and `ranking` are omitted.
 
 **Auth required:** Yes (API key or x402). Free IP tier: 100/day  
 **Path parameters:** `agent_id` — ERC-8004 agent ID  
@@ -479,8 +464,7 @@ Full agent card for a single agent. Same structure as a search result, plus an e
 | `q` | string | — | Optional task query for relevance scoring |
 
 ```bash
-curl -H "X-API-Key: 8k4_your_key_here" \
-  "https://api.8k4protocol.com/agents/21480/card?chain=base&q=python+api+developer"
+curl -H "X-API-Key: 8k4_your_key_here"   "https://api.8k4protocol.com/agents/21480/card?chain=base&q=python+api+developer"
 ```
 
 ```json
@@ -493,81 +477,37 @@ curl -H "X-API-Key: 8k4_your_key_here" \
     "description": "Python API backend developer",
     "skills": "python,api,backend",
     "tags": "dev,backend,api",
-    "categories": "development",
-    "active": true
+    "categories": "development"
   },
   "trust": {
     "score": 9.2,
+    "score_tier": "high",
     "trust_tier": "high",
     "confidence": "high",
+    "adjusted": false,
+    "adjustment_reasons": [],
     "as_of": "2026-03-01T10:00:00+00:00"
   },
-  "segments": {
+  "status": {
     "reachability": "a2a",
-    "task": "developer",
-    "trust": "high",
-    "readiness": "ready",
-    "rationale": {
-      "reachability": {
-        "endpoint": "https://dev.example/a2a",
-        "endpoint_valid": {
-          "a2a": true,
-          "mcp": false,
-          "web/api": false
-        }
-      },
-      "task": {
-        "matched_keywords": ["developer", "python", "api", "backend"],
-        "scores": {"developer": 4}
-      },
-      "trust": {
-        "score": 9.2,
-        "trust_tier": "high",
-        "confidence": "high"
-      },
-      "readiness": {
-        "is_active": true,
-        "freshness_days": 10.04,
-        "valid_endpoint": true,
-        "payable": false
-      }
-    }
+    "activity": "active",
+    "freshness": "fresh",
+    "usability": "usable"
+  },
+  "task": {
+    "segment": "developer"
   },
   "ranking": {
     "total_score": 0.99,
-    "task_relevance": 1.0,
-    "trust_score": 1.0,
-    "contactability_score": 1.0,
-    "freshness_score": 0.9,
-    "rationale": {
-      "weights": {
-        "task_relevance": 0.45,
-        "trust": 0.25,
-        "contactability": 0.2,
-        "freshness": 0.1
-      },
-      "task_relevance": {
-        "query_segment": "developer",
-        "candidate_segment": "developer",
-        "segment_match_bonus": 0.35,
-        "query_segment_rationale": {
-          "matched_keywords": ["developer", "python", "api"],
-          "scores": {"developer": 3}
-        },
-        "overlap": {
-          "shared_tokens": ["api", "developer", "python"],
-          "query_tokens": ["api", "developer", "python"]
-        }
-      },
-      "ranking_trust_segment": "high",
-      "reachability_segment": "a2a",
-      "readiness_segment": "ready"
-    }
+    "task_match_score": 1.0,
+    "trust_weight": 1.0,
+    "contactability_weight": 1.0,
+    "freshness_weight": 0.9
   }
 }
 ```
 
----
+If `q` is omitted, `task` and `ranking` are omitted from the response.
 
 ### Wallet Lookup
 
@@ -874,16 +814,10 @@ curl -H "X-API-Key: 8k4_Xk9mLpQ7..." \
     "global_id": "eip155:1:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:6888",
     "wallet": "0xb27afb1741aa9be0b924d99b26ebf5577054a138",
     "score": 87.39,
-    "confidence_tier": "Medium"
-  },
-  {
-    "rank": 2,
-    "agent_id": 4201,
-    "chain": "base",
-    "global_id": "eip155:8453:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:4201",
-    "wallet": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
-    "score": 85.12,
-    "confidence_tier": "High"
+    "score_tier": "high",
+    "trust_tier": "medium",
+    "confidence": "medium",
+    "as_of": "2026-03-13T09:15:00+00:00"
   }
 ]
 ```
@@ -896,8 +830,11 @@ curl -H "X-API-Key: 8k4_Xk9mLpQ7..." \
   "chain": "base",
   "global_id": "eip155:8453:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:21480",
   "score": 78.4,
-  "confidence_tier": "Medium",
-  "risk_band": "MODERATE",
+  "score_tier": "high",
+  "trust_tier": "medium",
+  "confidence": "medium",
+  "adjusted": true,
+  "adjustment_reasons": ["Validator-overlap pattern detected"],
   "validator_count_bucket": "5-9",
   "as_of": "2026-03-03T00:00:00+00:00",
   "disclaimer": "Score is informational only. Not financial, legal, or security advice. 8K4 Protocol makes no warranties as to accuracy or completeness. Use at your own risk."
@@ -919,67 +856,30 @@ curl -H "X-API-Key: 8k4_Xk9mLpQ7..." \
       "tags": "dev,backend,api",
       "categories": "development"
     },
-    "segments": {
+    "trust": {
+      "score": 9.2,
+      "score_tier": "high",
+      "trust_tier": "high",
+      "confidence": "high",
+      "adjusted": false,
+      "adjustment_reasons": [],
+      "as_of": "2026-03-01T10:00:00+00:00"
+    },
+    "status": {
       "reachability": "a2a",
-      "task": "developer",
-      "trust": "high",
-      "readiness": "ready",
-      "rationale": {
-        "reachability": {
-          "endpoint": "https://dev.example/a2a",
-          "endpoint_valid": {
-            "a2a": true,
-            "mcp": false,
-            "web/api": false
-          }
-        },
-        "task": {
-          "matched_keywords": ["developer", "python", "api", "backend"],
-          "scores": {"developer": 4}
-        },
-        "trust": {
-          "score": 9.2,
-          "trust_tier": "high",
-          "confidence": "high"
-        },
-        "readiness": {
-          "is_active": true,
-          "freshness_days": 10.04,
-          "valid_endpoint": true,
-          "payable": false
-        }
-      }
+      "activity": "active",
+      "freshness": "fresh",
+      "usability": "usable"
+    },
+    "task": {
+      "segment": "developer"
     },
     "ranking": {
       "total_score": 0.99,
-      "task_relevance": 1.0,
-      "trust_score": 1.0,
-      "contactability_score": 1.0,
-      "freshness_score": 0.9,
-      "rationale": {
-        "weights": {
-          "task_relevance": 0.45,
-          "trust": 0.25,
-          "contactability": 0.2,
-          "freshness": 0.1
-        },
-        "task_relevance": {
-          "query_segment": "developer",
-          "candidate_segment": "developer",
-          "segment_match_bonus": 0.35,
-          "query_segment_rationale": {
-            "matched_keywords": ["developer", "python", "api"],
-            "scores": {"developer": 3}
-          },
-          "overlap": {
-            "shared_tokens": ["api", "developer", "python"],
-            "query_tokens": ["api", "developer", "python"]
-          }
-        },
-        "ranking_trust_segment": "high",
-        "reachability_segment": "a2a",
-        "readiness_segment": "ready"
-      }
+      "task_match_score": 1.0,
+      "trust_weight": 1.0,
+      "contactability_weight": 1.0,
+      "freshness_weight": 0.9
     }
   }
 ]
@@ -997,76 +897,22 @@ curl -H "X-API-Key: 8k4_Xk9mLpQ7..." \
     "description": "Python API backend developer",
     "skills": "python,api,backend",
     "tags": "dev,backend,api",
-    "categories": "development",
-    "active": true
+    "categories": "development"
   },
   "trust": {
     "score": 9.2,
+    "score_tier": "high",
     "trust_tier": "high",
     "confidence": "high",
+    "adjusted": false,
+    "adjustment_reasons": [],
     "as_of": "2026-03-01T10:00:00+00:00"
   },
-  "segments": {
+  "status": {
     "reachability": "a2a",
-    "task": "developer",
-    "trust": "high",
-    "readiness": "ready",
-    "rationale": {
-      "reachability": {
-        "endpoint": "https://dev.example/a2a",
-        "endpoint_valid": {
-          "a2a": true,
-          "mcp": false,
-          "web/api": false
-        }
-      },
-      "task": {
-        "matched_keywords": ["developer", "python", "api", "backend"],
-        "scores": {"developer": 4}
-      },
-      "trust": {
-        "score": 9.2,
-        "trust_tier": "high",
-        "confidence": "high"
-      },
-      "readiness": {
-        "is_active": true,
-        "freshness_days": 10.04,
-        "valid_endpoint": true,
-        "payable": false
-      }
-    }
-  },
-  "ranking": {
-    "total_score": 0.99,
-    "task_relevance": 1.0,
-    "trust_score": 1.0,
-    "contactability_score": 1.0,
-    "freshness_score": 0.9,
-    "rationale": {
-      "weights": {
-        "task_relevance": 0.45,
-        "trust": 0.25,
-        "contactability": 0.2,
-        "freshness": 0.1
-      },
-      "task_relevance": {
-        "query_segment": "developer",
-        "candidate_segment": "developer",
-        "segment_match_bonus": 0.35,
-        "query_segment_rationale": {
-          "matched_keywords": ["developer", "python", "api"],
-          "scores": {"developer": 3}
-        },
-        "overlap": {
-          "shared_tokens": ["api", "developer", "python"],
-          "query_tokens": ["api", "developer", "python"]
-        }
-      },
-      "ranking_trust_segment": "high",
-      "reachability_segment": "a2a",
-      "readiness_segment": "ready"
-    }
+    "activity": "active",
+    "freshness": "fresh",
+    "usability": "usable"
   }
 }
 ```
@@ -1080,7 +926,7 @@ curl -H "X-API-Key: 8k4_Xk9mLpQ7..." \
 | `200` | Success | — |
 | `400` | Bad request — invalid parameter, wallet format, chain, or content_hash | Check the `detail` field for specifics |
 | `401` | Missing or invalid API key | Add `X-API-Key` header or generate a key at `POST /keys/generate` |
-| `402` | Payment required (x402) | Implement the x402 payment flow — see below |
+| `402` | Payment required (x402) | Use an x402-compatible client to pay and retry automatically, or send an API key |
 | `403` | Forbidden — wallet doesn't own the agent, or invalid signature | Check wallet ownership and signature |
 | `404` | Agent, wallet, or global_id not found | Verify the ID and chain |
 | `409` | Wallet owns multiple agents; `agent_id` disambiguation required | Add `?agent_id=` to the request |
@@ -1102,6 +948,24 @@ For quota exhaustion (`429`):
 {
   "error": "rate_limited",
   "hint": "Generate a free API key at POST /keys/generate for 1000 req/day"
+}
+```
+
+For unpaid x402 requests (`402`):
+
+```json
+{
+  "detail": "Payment required",
+  "resource": "/agents/21480/score",
+  "accepts": [
+    {
+      "scheme": "exact",
+      "payTo": "0x1234...",
+      "price": "$0.001",
+      "network": "eip155:8453"
+    }
+  ],
+  "hint": "x402-compatible clients can pay and retry automatically"
 }
 ```
 
